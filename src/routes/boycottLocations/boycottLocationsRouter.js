@@ -62,10 +62,34 @@ router.get('/boycottLocation', async (req, res) => {
 
 //POST /boycottLocation
 router.post('/boycottLocation', (req, res) => {
+    const { name, address, lat, lng, date, text } = req.body;
+    let data = {
+      name: name,
+      address: address,
+      lat: Number(lat),
+      lng: Number(lng),
+      allBoycotts: [
+        {
+          date: Number(date),
+          text: text,
+        }
+      ]
+    }
+
+    db.collection('boycottLocations').add(data)
+      .then(doc => {
+        res.send('Successfully saved boycott.');
+      })
+      .catch(error => {
+        res.send(error);
+        console.log(error);
+      })
+
+
     //take the new data in req.body, and use it to add a new boycott to our array
-    let newBoycott = req.body;
-    boycotts.push(newBoycott);
-    res.send('success');
+    // let newBoycott = req.body;
+    // boycotts.push(newBoycott);
+    // res.send('success');
 });
 
 // 3. now that we have configured our routes on the router we will export it to be
