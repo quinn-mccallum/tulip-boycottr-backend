@@ -22,11 +22,15 @@ const db = admin.firestore();
 const app = express();
 
 
-//the 2 app.use lines below are directly from npm (including comments)     
+//the 2 app.use lines below are directly from npm (including comments)
 // parse application/x-www-form-urlencoded
 app.use(bodyParser.urlencoded({ extended: false }))
 // parse application/json
-app.use(bodyParser.json())
+app.use(bodyParser.json());
+app.use(function(req, res, next){
+  res.header("Access-Control-Allow-Origin", "*");
+  next();
+})
 
 
 //1. bring in our external router
