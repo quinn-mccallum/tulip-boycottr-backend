@@ -4,6 +4,7 @@ const express = require('express'),
 const admin = require("firebase-admin");
 
 const db = admin.firestore();
+
 // 2. define our coffee routes on this express router
 const boycotts = [
     {
