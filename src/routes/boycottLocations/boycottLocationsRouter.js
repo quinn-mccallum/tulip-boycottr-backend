@@ -1,48 +1,48 @@
 // 1. Create an express router
 const express = require('express'),
       router = express.Router();
+const request = require('request');
 const admin = require("firebase-admin");
+const googleClient = require('@google/maps').createClient({
+  key: 'AIzaSyD4kTXhVzQ39Y0TnwrLFSEM9njwYDX4EO8'
+});
 
 const db = admin.firestore();
 // 2. define our coffee routes on this express router
-const boycotts = [
-    {
-        name: "Starbucks",
-        address: "250 Queen St W, Toronto, ON M5V 1Z7",
-        lat: 43.6498937,
-        long: -79.3912412,
-        allBoycotts: [
-            {
-                date: 20180710,
-                text: "racsim towards customers"
-            },
-            {
-                date: 20180625,
-                text: "plastic straws"
-            },
-            {
-                date: 20180625,
-                text: "the use of non-fairtrade coffee and non-organic milk"
-            }
-        ]
-    },
-    {
-        name: "Starbucks",
-        address: "621 King St W, Toronto, ON M5V 1M5",
-        lat: 43.6473827,
-        long: -79.403075,
-        allBoycotts: [
-            {
-                date: 20180710,
-                text: "racsim towards customers"
-            },
-            {
-                date: 20180625,
-                text: "plastic straws"
-            }
-        ]
+
+router.get('/places', (req, res)=> {
+  request(`https://maps.googleapis.com/maps/api/place/autocomplete/json?input=${req.query.place}&radius=1000&location=${req.query.lat},${req.query.lng}&types=establishment&strictbounds&key=AIzaSyD4kTXhVzQ39Y0TnwrLFSEM9njwYDX4EO8`, (err, resp, body)=> {
+    if(err){
+      console.log(err);
+      res.json(err);
     }
-]
+    else {
+      console.log(body);
+      const parsedBod = JSON.parse(body);
+      res.json(parsedBod);
+    }
+  })
+    // .then(data=> {
+    //   res.json(data);
+    //   console.log('the data we got from the FETCH is: ', data);
+    // })
+    // .catch(err=> {
+    //   res.status(401).send(err);
+    //   console.log('we got an error from the FETCH with: ', err);
+    // })
+})
+
+router.get('/nearby/:lat&:lng', (req, res) => {
+  googleClient.placesNearby({location: {lat: req.params.lat, lng: req.params.lng}, radius: 1000}, (err, data)=> {
+    if(err){
+      console.log(err);
+      res.json(err);
+    }
+    else{
+      res.json(data);
+    }
+  })
+})
 
 //GET /boycottLocation
 router.get('/boycottLocation', async (req, res) => {
@@ -84,13 +84,24 @@ router.post('/boycottLocation', (req, res) => {
         res.send(error);
         console.log(error);
       })
-
-
-    //take the new data in req.body, and use it to add a new boycott to our array
-    // let newBoycott = req.body;
-    // boycotts.push(newBoycott);
-    // res.send('success');
 });
+
+// router.put('/boycottLocation', (req, res) => {
+//   let data = {
+//     allBoycotts: [
+//       {
+//         date: Number(date),
+//         text: text
+//       }
+//     ]
+//   }
+//
+//   db.collection('boycottLocations').doc(*id*).update({
+//
+//   })
+// });
+
+
 
 // 3. now that we have configured our routes on the router we will export it to be
     // used in the main file
