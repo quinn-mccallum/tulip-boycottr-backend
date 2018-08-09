@@ -8,6 +8,7 @@ const googleClient = require('@google/maps').createClient({
 });
 
 const db = admin.firestore();
+
 // 2. define our coffee routes on this express router
 
 router.get('/places', (req, res)=> {
