@@ -4,7 +4,7 @@ const express = require('express'),
 const request = require('request');
 const admin = require("firebase-admin");
 const googleClient = require('@google/maps').createClient({
-  key: 'AIzaSyD4kTXhVzQ39Y0TnwrLFSEM9njwYDX4EO8'
+  key: 'AIzaSyAO3LC4QRW4h7ZNruufzuVFfdx5v-PWRus'
 });
 
 const db = admin.firestore();
@@ -12,7 +12,7 @@ const db = admin.firestore();
 // 2. define our coffee routes on this express router
 
 router.get('/places', (req, res)=> {
-  request(`https://maps.googleapis.com/maps/api/place/autocomplete/json?input=${req.query.place}&radius=1000&location=${req.query.lat},${req.query.lng}&types=establishment&strictbounds&key=AIzaSyD4kTXhVzQ39Y0TnwrLFSEM9njwYDX4EO8`, (err, resp, body)=> {
+  request(`https://maps.googleapis.com/maps/api/place/autocomplete/json?input=${req.query.place}&radius=1000&location=${req.query.lat},${req.query.lng}&types=establishment&strictbounds&key=AIzaSyAO3LC4QRW4h7ZNruufzuVFfdx5v-PWRus`, (err, resp, body)=> {
     if(err){
       console.log(err);
       res.json(err);
@@ -63,7 +63,18 @@ router.get('/boycottLocation', async (req, res) => {
 
 //POST /boycottLocation
 router.post('/boycottLocation', (req, res) => {
-    const { name, address, lat, lng, date, text } = req.body;
+    let text = ''
+    for(key in req.body.reasons){
+      if(key === 'other'){
+        text += `${req.body.reasons[key]}, `
+      }
+      else {
+        text += `${key}, `
+      }
+    }
+    text = text.slice(0,-2);
+    const { name, address, lat, lng } = req.body;
+    const date = new Date();
     let data = {
       name: name,
       address: address,
@@ -71,7 +82,7 @@ router.post('/boycottLocation', (req, res) => {
       lng: Number(lng),
       allBoycotts: [
         {
-          date: Number(date),
+          date: date,
           text: text,
         }
       ]
@@ -86,6 +97,20 @@ router.post('/boycottLocation', (req, res) => {
         console.log(error);
       })
 });
+
+router.get('/establishmentInfo/:id', (req, res)=> {
+  request(`https://maps.googleapis.com/maps/api/place/details/json?key=AIzaSyAO3LC4QRW4h7ZNruufzuVFfdx5v-PWRus&placeid=${req.params.id}`, (err, response, body)=>{
+    if(err){
+      res.status(400).send(err)
+    }
+    else {
+      const parsedBod = JSON.parse(body);
+      const { lat, lng } = parsedBod.result.geometry.location;
+      const { formatted_address: address, name } = parsedBod.result;
+      res.send({ lat, lng, address, name });
+    }
+  })
+})
 
 // router.put('/boycottLocation', (req, res) => {
 //   let data = {
